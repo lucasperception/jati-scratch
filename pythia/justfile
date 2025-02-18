@@ -1,0 +1,4 @@
+build:
+    docker build . -t pythia
+run:
+    docker run -it -v .:/mnt/shared pythia
