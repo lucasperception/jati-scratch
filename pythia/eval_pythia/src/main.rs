@@ -12,6 +12,8 @@ struct DataSet {
     difficulty: f64,
 }
 
+const FILE_EXTENSIONS: &[&str] = &[".fas", ".fna", ".fasta"];
+
 fn main() {
     let args = std::env::args().collect::<Vec<_>>();
     let [_exe, dir_arg] = &args[..] else {
@@ -28,7 +30,7 @@ fn main() {
                 .into_string()
                 .expect("filenames should be utf-8 encodable");
             if entry.file_type().is_ok_and(|file_type| file_type.is_file())
-                && (file_name.ends_with(".fas") || file_name.ends_with(".fna"))
+                && FILE_EXTENSIONS.iter().any(|ext| file_name.ends_with(ext))
             {
                 Some(entry.path())
             } else {
