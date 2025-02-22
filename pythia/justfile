@@ -2,3 +2,7 @@ build:
     docker build . -t pythia
 run:
     docker run -it -v .:/mnt/shared pythia
+
+[no-cd]
+trim-whitespace +FILES:
+    for file in '{{FILES}}'; do sed -i 's/[[:blank:]]*$//;/^[[:space:]]*$/d' $file ; done
