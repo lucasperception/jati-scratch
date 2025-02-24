@@ -1,0 +1,15 @@
+# honestly idk why I had to invest time to create this file
+# but the build instructions from the repo simply DONT
+# work for `make install` (there is no install target generated)
+
+include(GNUInstallDirs)
+install(
+    TARGETS corax
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+install(
+    DIRECTORY ${PROJECT_SOURCE_DIR}/src/corax/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/corax
+    FILES_MATCHING PATTERN "*.h"
+)
