@@ -1,7 +1,7 @@
 FROM rust:1-bookworm
 
 RUN apt-get update && apt-get -yqq --no-install-recommends install unzip curl \
-    python3 python3-venv git libgomp1 libopenblas-dev build-essential cmake
+    python3 python3-venv git libgomp1 libopenblas-dev build-essential cmake libclang-dev
 
 RUN cd /opt && mkdir raxml-ng && cd raxml-ng \
     && curl -LO https://github.com/amkozlov/raxml-ng/releases/download/1.2.2/raxml-ng_v1.2.2_linux_x86_64.zip \
@@ -22,6 +22,6 @@ RUN --mount=type=bind,source=./CMakeLists.fix.txt,target=/tmp/corax-fix git clon
     && make && make install
 WORKDIR /opt/tools
 RUN --mount=type=bind,rw,source=eval_pythia,target=eval_pythia cd eval_pythia && cargo build --release && cd .. \
-    && cp -p ./eval_pythia/target/release/eval_pythia run-evaluation
+    && cp -p ./eval_pythia/target/release/runner run-evaluation && cp -rp ./eval_pythia/target/release/build build-out
 COPY ./eval_pythia/predictor.py .
 

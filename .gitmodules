@@ -1,0 +1,3 @@
+[submodule "pythia/eval_pythia/cpythia/bindings/CPythia"]
+	path = pythia/eval_pythia/cpythia/bindings/CPythia
+	url = https://github.com/tschuelia/CPythia

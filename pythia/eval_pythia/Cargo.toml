@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["runner"]
+members = ["runner", "cpythia/bindings"]
 
 [profile.release]
 debug = true
