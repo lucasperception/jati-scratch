@@ -1,10 +1,6 @@
-[package]
-name = "eval_pythia"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-seq_io = "0.3.3"
+[workspace]
+resolver = "3"
+members = ["runner"]
 
 [profile.release]
 debug = true
