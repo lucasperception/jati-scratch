@@ -3,7 +3,7 @@ use std::{env, path::PathBuf};
 use cmake::Config;
 
 fn main() {
-    let out = Config::new("./CPythia/").build();
+    let out = Config::new("./CPythia/").no_build_target(true).build();
 
     println!("cargo:rustc-link-search={}/build/src/corax", out.display());
     println!("cargo:rustc-link-lib=static=coraxlib_difficulty_prediction_lib");

@@ -91,6 +91,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "corax"
+version = "1.0.0"
+dependencies = [
+ "corax_bindings",
+ "cpythia_bindings",
+ "libc",
+]
+
+[[package]]
+name = "corax_bindings"
+version = "1.0.0"
+dependencies = [
+ "bindgen",
+]
+
+[[package]]
 name = "cpythia_bindings"
 version = "1.2.0"
 dependencies = [

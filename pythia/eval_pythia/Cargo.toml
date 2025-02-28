@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["runner", "cpythia/bindings"]
+members = ["runner", "cpythia", "cpythia/bindings", "corax/bindings"]
 
 [profile.release]
 debug = true
