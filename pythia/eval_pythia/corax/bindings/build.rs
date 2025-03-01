@@ -1,11 +1,21 @@
 use std::{env, path::PathBuf};
 
+use cmake::Config;
+
 fn main() {
-    println!("cargo:rustc-link-search=/usr/local/lib");
+    let _out_path = Config::new("./coraxlib/")
+        .no_build_target(true)
+        .define("CORAX_BUILD_DIFFICULTY_PREDICTION", "On")
+        .build();
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    println!("cargo:rustc-link-search={manifest_dir}/coraxlib/bin");
     println!("cargo:rustc-link-lib=static=corax");
+    println!("cargo:rustc-link-lib=static=coraxlib_difficulty_prediction_lib");
 
     let bindings = bindgen::Builder::default()
-        .header("./wrapper.h")
+        .clang_arg("-I./coraxlib/src/")
+        .header("./coraxlib/src/corax/corax.h")
+        .header("./coraxlib/lib/difficulty_prediction/src/corax/difficulty.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .allowlist_type("corax_split_t")
         .allowlist_type("corax_msa_t")
@@ -19,6 +29,8 @@ fn main() {
         .allowlist_function("corax_(phylip|fasta)_load")
         .allowlist_item("CORAX_(TRUE|FALSE)")
         .allowlist_item("corax_map_nt")
+        .allowlist_function("corax_msa_compute_features")
+        .allowlist_function("corax_msa_predict_difficulty")
         .generate()
         .expect("Unable to generate bindings");
 

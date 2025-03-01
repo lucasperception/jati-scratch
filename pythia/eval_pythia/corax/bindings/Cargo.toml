@@ -1,11 +1,11 @@
 [package]
-name = "corax_bindings"
+name = "corax-sys"
 version = "1.0.0"
 edition = "2024"
-
 
 [lib]
 crate-type = ["rlib"]
 
 [build-dependencies]
 bindgen = "0.71.1"
+cmake = "0.1.54"
