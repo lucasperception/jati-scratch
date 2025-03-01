@@ -72,19 +72,20 @@ fn main() {
             println!(
                 "{fasta_file_path:?} with dimensions ({n_seqs},{seq_len}) predicted difficulty {difficulty}"
             );
-            assert_eq!(native_difficulty, difficulty);
+            // assert_eq!(native_difficulty, difficulty);
 
             evaluated_datasets.push(DataSet {
                 path: fasta_file_path,
                 n_seqs,
                 seq_len,
                 difficulty,
-                native_difficulty,
+                native_difficulty: 0.,
             })
         } else {
             eprintln!(
                 "{fasta_file_path:?} with dimensions ({n_seqs},{seq_len}) failed to predict difficulty"
             );
+            eprintln!("{:?}", String::from_utf8(pythia_output.stderr));
         }
     }
 

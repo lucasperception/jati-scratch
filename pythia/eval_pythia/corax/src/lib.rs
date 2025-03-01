@@ -7,7 +7,7 @@
 // #include "difficulty.h"
 
 use corax_sys::{
-    corax_fasta_load, corax_map_nt, corax_msa_destroy, corax_msa_t, corax_split_t,
+    corax_fasta_load, corax_map_aa, corax_map_nt, corax_msa_destroy, corax_msa_t, corax_split_t,
     corax_utree_create_parsimony, corax_utree_destroy, corax_utree_split_create,
     corax_utree_split_destroy, corax_utree_split_rf_distance, corax_utree_t,
 };
@@ -61,7 +61,7 @@ fn get_pars_splits(msa: *const corax_msa_t, n_trees: u32) -> Vec<*mut corax_spli
                 (*msa).label as *const *const i8,
                 (*msa).sequence as *const *const i8,
                 std::ptr::null(),
-                corax_map_nt.as_ptr(),
+                corax_map_aa.as_ptr(),
                 4,
                 0,
                 i, // seed
@@ -217,7 +217,7 @@ pub fn predict_difficulty(filename: &str) -> f64 {
     let (num_unique, avg_rrf) = get_num_unique_and_rel_rfdist(&splits, n_taxa);
     println!("got num_unique {num_unique} and avg_rrf {avg_rrf}");
     // corax_msa_features * features = corax_msa_compute_features(msa, 4, corax_map_nt);
-    let features = unsafe { corax_msa_compute_features(msa, 4, corax_map_nt.as_ptr()) };
+    let features = unsafe { corax_msa_compute_features(msa, 4, corax_map_aa.as_ptr()) };
     println!("computed msa features");
     // double out_pred = corax_msa_predict_difficulty(features, avg_rrf, num_unique / _num_trees);
     let out_pred: f64 = unsafe {

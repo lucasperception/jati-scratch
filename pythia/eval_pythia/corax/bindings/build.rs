@@ -28,7 +28,7 @@ fn main() {
         .allowlist_function("corax_utree_split_destroy")
         .allowlist_function("corax_(phylip|fasta)_load")
         .allowlist_item("CORAX_(TRUE|FALSE)")
-        .allowlist_item("corax_map_nt")
+        .allowlist_item("corax_map_(nt|aa)")
         .allowlist_function("corax_msa_compute_features")
         .allowlist_function("corax_msa_predict_difficulty")
         .generate()
