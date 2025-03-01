@@ -1,7 +1,8 @@
 use std::{
     collections::HashSet,
     path::{Path, PathBuf},
-    process::{exit, Command},
+    process::{Command, exit},
+    time::Instant,
 };
 
 #[derive(Clone, Debug)]
@@ -10,6 +11,7 @@ struct DataSet {
     n_seqs: usize,
     seq_len: usize,
     difficulty: f64,
+    native_difficulty: f64,
 }
 
 const FILE_EXTENSIONS: &[&str] = &[".fas", ".fna", ".fasta", ".aln"];
@@ -41,6 +43,18 @@ fn main() {
 
     for fasta_file_path in fasta_file_paths {
         let (n_seqs, seq_len) = read_n_seqs_and_seq_len(&fasta_file_path);
+        let start = Instant::now();
+        let native_difficulty = corax::predict_difficulty(
+            fasta_file_path
+                .as_os_str()
+                .to_str()
+                .expect("filepath is not utf8 encodable"),
+        );
+        println!(
+            "got native_difficulty {native_difficulty} after {:?}",
+            start.elapsed()
+        );
+        let start = Instant::now();
         let pythia_output = Command::new("python")
             .arg("predictor.py")
             .arg(&fasta_file_path)
@@ -54,14 +68,18 @@ fn main() {
                 Ok(v) => v,
                 Err(error) => panic!("failed to parse stdout '{stdout}' as a float: {error:?}"),
             };
+            println!("pythia took {:?}", start.elapsed());
             println!(
                 "{fasta_file_path:?} with dimensions ({n_seqs},{seq_len}) predicted difficulty {difficulty}"
             );
+            assert_eq!(native_difficulty, difficulty);
+
             evaluated_datasets.push(DataSet {
                 path: fasta_file_path,
                 n_seqs,
                 seq_len,
                 difficulty,
+                native_difficulty,
             })
         } else {
             eprintln!(

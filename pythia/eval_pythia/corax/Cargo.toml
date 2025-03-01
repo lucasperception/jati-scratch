@@ -1,0 +1,9 @@
+[package]
+name = "corax"
+version = "1.0.0"
+edition = "2024"
+
+
+[dependencies]
+corax-sys = { path = "./bindings" }
+libc = "0.2"

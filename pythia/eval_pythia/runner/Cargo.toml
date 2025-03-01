@@ -5,3 +5,4 @@ version = "0.1.0"
 
 [dependencies]
 seq_io = "0.3.3"
+corax = { path = "../corax" }
