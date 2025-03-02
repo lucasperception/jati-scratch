@@ -8,19 +8,43 @@
 
 use corax_sys::{
     corax_fasta_load, corax_map_aa, corax_map_nt, corax_msa_destroy, corax_msa_t, corax_split_t,
-    corax_utree_create_parsimony, corax_utree_destroy, corax_utree_split_create,
+    corax_state_t, corax_utree_create_parsimony, corax_utree_destroy, corax_utree_split_create,
     corax_utree_split_destroy, corax_utree_split_rf_distance, corax_utree_t,
 };
 use corax_sys::{corax_msa_compute_features, corax_msa_predict_difficulty};
 use std::ffi::{CStr, c_void};
 use std::{collections::HashMap, ffi::CString};
 
+#[derive(Debug, Clone, Copy)]
+pub enum SequenceType {
+    DNA,
+    AA,
+}
+impl SequenceType {
+    fn n_states(&self) -> u32 {
+        match self {
+            SequenceType::DNA => 4,
+            SequenceType::AA => 20,
+        }
+    }
+    fn char_map(&self) -> *const corax_state_t {
+        match self {
+            SequenceType::DNA => unsafe { corax_map_nt.as_ptr() },
+            SequenceType::AA => unsafe { corax_map_aa.as_ptr() },
+        }
+    }
+}
+
 // std::vector<corax_split_t *> get_pars_splits(corax_msa_t *msa, int n_trees)
 // {
 /**
  * Infers n_trees parsimony trees for the given MSA using Coraxlib, creates and returns the splits.
  */
-fn get_pars_splits(msa: *const corax_msa_t, n_trees: u32) -> Vec<*mut corax_split_t> {
+fn get_pars_splits(
+    msa: *const corax_msa_t,
+    n_trees: u32,
+    dna_or_aa: SequenceType,
+) -> Vec<*mut corax_split_t> {
     // SAFETY: i have no idea why they would use i32 for n_trees. the vector allocation below would
     // immediately fail for negative numbers. it is also only ever called with size_t which is
     // unsigned
@@ -61,8 +85,8 @@ fn get_pars_splits(msa: *const corax_msa_t, n_trees: u32) -> Vec<*mut corax_spli
                 (*msa).label as *const *const i8,
                 (*msa).sequence as *const *const i8,
                 std::ptr::null(),
-                corax_map_aa.as_ptr(),
-                4,
+                dna_or_aa.char_map(),
+                dna_or_aa.n_states(),
                 0,
                 i, // seed
                 &mut score,
@@ -78,7 +102,6 @@ fn get_pars_splits(msa: *const corax_msa_t, n_trees: u32) -> Vec<*mut corax_spli
         label_to_id.insert(unsafe { CStr::from_ptr((*node).label) }, i);
         //   }
     }
-    dbg!("built label map");
     //   for (corax_utree_t * tree: pars_trees)
     //   {
     for tree in pars_trees.iter().copied() {
@@ -102,7 +125,6 @@ fn get_pars_splits(msa: *const corax_msa_t, n_trees: u32) -> Vec<*mut corax_spli
         }
         //   }
     }
-    dbg!("assigned tree nodes to ids according to label");
     //   for (int i = 0; i < n_trees; ++i)
     //   {
     for i in 0..n_trees {
@@ -116,7 +138,6 @@ fn get_pars_splits(msa: *const corax_msa_t, n_trees: u32) -> Vec<*mut corax_spli
         };
         //   }
     }
-    dbg!("created pars_tree splits");
     //   for (int i = 0; i < n_trees; ++i)
     //   {
     for i in 0..n_trees {
@@ -124,7 +145,6 @@ fn get_pars_splits(msa: *const corax_msa_t, n_trees: u32) -> Vec<*mut corax_spli
         unsafe { corax_utree_destroy(pars_trees[i as usize], None) };
         //   }
     }
-    dbg!("destroyed all pars_trees");
     //   return splits;
     splits
     // }
@@ -162,9 +182,7 @@ fn get_num_unique_and_rel_rfdist(splits: &[*mut corax_split_t], n_taxa: i32) -> 
                 unsafe { corax_utree_split_rf_distance(splits[i], splits[j], unsigned_n_taxa) }
                     .into();
             // avg_rrf += ((double)rf) / max_rf;
-            dbg!(rf);
             avg_rrf += rf as f64 / max_rf;
-            dbg!(avg_rrf);
             // num_pairs++;
             num_pairs += 1;
             // uniq &= (rf > 0);
@@ -188,8 +206,7 @@ fn get_num_unique_and_rel_rfdist(splits: &[*mut corax_split_t], n_taxa: i32) -> 
 // int main(int argc, char *argv[])
 // {
 //   const char *filename = "path/to/msa.phy";
-pub fn predict_difficulty(filename: &str) -> f64 {
-    dbg!(filename);
+pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> f64 {
     let c_filename = CString::new(filename).expect("failed to convert filename to a cstring");
     /*
      * make sure to update this function call based on your MSA:
@@ -201,13 +218,13 @@ pub fn predict_difficulty(filename: &str) -> f64 {
     if msa.is_null() {
         panic!("loaded msa is null");
     }
+
     //   size_t _num_trees = 100;
     let _num_trees: u32 = 100;
     //   int n_taxa = msa->count;
     let n_taxa: i32 = unsafe { *msa }.count;
     // std::vector<corax_split_t *> splits = get_pars_splits(msa, _num_trees);
-    let splits = get_pars_splits(msa, _num_trees);
-    println!("got splits");
+    let splits = get_pars_splits(msa, _num_trees, dna_or_aa);
     // int num_unique;
     // double avg_rrf;
     // std::tie(num_unique, avg_rrf) = get_num_unique_and_rel_rfdist(splits, n_taxa);
@@ -215,10 +232,9 @@ pub fn predict_difficulty(filename: &str) -> f64 {
     // this safe since if the function could modify the pointers we would not free them later
     // with corax_utree_split_destroy
     let (num_unique, avg_rrf) = get_num_unique_and_rel_rfdist(&splits, n_taxa);
-    println!("got num_unique {num_unique} and avg_rrf {avg_rrf}");
     // corax_msa_features * features = corax_msa_compute_features(msa, 4, corax_map_nt);
-    let features = unsafe { corax_msa_compute_features(msa, 4, corax_map_aa.as_ptr()) };
-    println!("computed msa features");
+    let features =
+        unsafe { corax_msa_compute_features(msa, dna_or_aa.n_states(), dna_or_aa.char_map()) };
     // double out_pred = corax_msa_predict_difficulty(features, avg_rrf, num_unique / _num_trees);
     let out_pred: f64 = unsafe {
         corax_msa_predict_difficulty(
@@ -227,7 +243,6 @@ pub fn predict_difficulty(filename: &str) -> f64 {
             num_unique.overflowing_div(_num_trees).0 as f64,
         )
     };
-    println!("predicted difficulty {out_pred}");
     // out_pred = round(out_pred * 100.0) / 100.0;
     let out_pred = (out_pred * 100.0).round() / 100.0;
     // std::cout << "The predicted difficulty for MSA " << filename << " is: " << out_pred << "\n";

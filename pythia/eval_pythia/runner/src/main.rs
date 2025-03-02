@@ -18,7 +18,7 @@ const FILE_EXTENSIONS: &[&str] = &[".fas", ".fna", ".fasta", ".aln"];
 
 fn main() {
     let args = std::env::args().collect::<Vec<_>>();
-    let [_exe, dir_arg] = &args[..] else {
+    let [_exe, dir_arg, dna_or_aa] = &args[..] else {
         eprintln!("usage: <exe> path-to-dir-with-fasta-files");
         exit(1);
     };
@@ -49,6 +49,7 @@ fn main() {
                 .as_os_str()
                 .to_str()
                 .expect("filepath is not utf8 encodable"),
+            corax::SequenceType::DNA,
         );
         println!(
             "got native_difficulty {native_difficulty} after {:?}",
@@ -72,7 +73,12 @@ fn main() {
             println!(
                 "{fasta_file_path:?} with dimensions ({n_seqs},{seq_len}) predicted difficulty {difficulty}"
             );
-            // assert_eq!(native_difficulty, difficulty);
+            let rounded_pythia_difficulty = (100. * difficulty).round() / 100.;
+            if rounded_pythia_difficulty != native_difficulty {
+                eprintln!(
+                    "{fasta_file_path:?} difficulty mismatch native {native_difficulty} and py {difficulty}"
+                );
+            }
 
             evaluated_datasets.push(DataSet {
                 path: fasta_file_path,
