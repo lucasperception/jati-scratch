@@ -1,9 +1,9 @@
-use std::{env, path::PathBuf};
+use std::env;
 
 use cmake::Config;
 
 fn main() {
-    let _out_path = Config::new("./coraxlib/")
+    let _cmake_out_path = Config::new("./coraxlib/")
         .no_build_target(true)
         .define("CORAX_BUILD_DIFFICULTY_PREDICTION", "On")
         .build();
@@ -34,8 +34,10 @@ fn main() {
         .generate()
         .expect("Unable to generate bindings");
 
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    // let _cargo_out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    // I would actually write the bindings to OUT_DIR but rust analyzer can't pick
+    // things outside the cratepath up :(
     bindings
-        .write_to_file(out_path.join("bindings.rs"))
+        .write_to_file("./src/bindings.rs")
         .expect("couldn't write bindings!");
 }
