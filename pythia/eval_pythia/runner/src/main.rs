@@ -50,7 +50,8 @@ fn main() {
                 .to_str()
                 .expect("filepath is not utf8 encodable"),
             corax::SequenceType::DNA,
-        );
+        )
+        .difficulty;
         println!(
             "got native_difficulty {native_difficulty} after {:?}",
             start.elapsed()

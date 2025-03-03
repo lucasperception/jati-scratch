@@ -7,9 +7,10 @@
 // #include "difficulty.h"
 
 use corax_sys::{
-    corax_fasta_load, corax_map_aa, corax_map_nt, corax_msa_destroy, corax_msa_t, corax_split_t,
-    corax_state_t, corax_utree_create_parsimony, corax_utree_destroy, corax_utree_split_create,
-    corax_utree_split_destroy, corax_utree_split_rf_distance, corax_utree_t,
+    CORAX_FALSE, CORAX_TRUE, corax_fasta_load, corax_map_aa, corax_map_nt, corax_msa_destroy,
+    corax_msa_t, corax_phylip_load, corax_split_t, corax_state_t, corax_utree_create_parsimony,
+    corax_utree_destroy, corax_utree_split_create, corax_utree_split_destroy,
+    corax_utree_split_rf_distance, corax_utree_t,
 };
 use corax_sys::{corax_msa_compute_features, corax_msa_predict_difficulty};
 use std::ffi::{CStr, c_void};
@@ -165,7 +166,7 @@ fn get_num_unique_and_rel_rfdist(splits: &[*mut corax_split_t], n_taxa: i32) -> 
     //   double max_rf = (double)2 * (n_taxa - 3);
     // TODO: should we catch n_taxa below 3?
     // seems like a negative value here would mess with the avg
-    let max_rf = (2 * (n_taxa - 3)) as f64;
+    let max_rf: f64 = (2 * (n_taxa - 3)) as f64;
     //   size_t num_pairs =  0;
     let mut num_pairs = 0usize;
     //
@@ -203,10 +204,16 @@ fn get_num_unique_and_rel_rfdist(splits: &[*mut corax_split_t], n_taxa: i32) -> 
     // }
 }
 
+pub struct PredictionResult {
+    pub avg_rrf: f64,
+    pub prop_unique_topos: f64,
+    pub difficulty: f64,
+}
+
 // int main(int argc, char *argv[])
 // {
 //   const char *filename = "path/to/msa.phy";
-pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> f64 {
+pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> PredictionResult {
     let c_filename = CString::new(filename).expect("failed to convert filename to a cstring");
     /*
      * make sure to update this function call based on your MSA:
@@ -214,7 +221,18 @@ pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> f64 {
      * - for MSAs in fasta format use corax_fasta_load
      */
     //   corax_msa_t *msa = corax_phylip_load(filename, CORAX_FALSE);
-    let msa = unsafe { corax_fasta_load(c_filename.as_ptr()) };
+    let msa = if filename.ends_with(".phy") {
+        unsafe {
+            corax_phylip_load(
+                c_filename.as_ptr(),
+                CORAX_TRUE
+                    .try_into()
+                    .expect("CORAX_FALSE is not compatible with underlying bool int type"),
+            )
+        }
+    } else {
+        unsafe { corax_fasta_load(c_filename.as_ptr()) }
+    };
     if msa.is_null() {
         panic!("loaded msa is null");
     }
@@ -233,16 +251,12 @@ pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> f64 {
     // with corax_utree_split_destroy
     let (num_unique, avg_rrf) = get_num_unique_and_rel_rfdist(&splits, n_taxa);
     // corax_msa_features * features = corax_msa_compute_features(msa, 4, corax_map_nt);
+    let prop_unique_topos: f64 = num_unique as f64 / _num_trees as f64;
     let features =
         unsafe { corax_msa_compute_features(msa, dna_or_aa.n_states(), dna_or_aa.char_map()) };
     // double out_pred = corax_msa_predict_difficulty(features, avg_rrf, num_unique / _num_trees);
-    let out_pred: f64 = unsafe {
-        corax_msa_predict_difficulty(
-            features,
-            avg_rrf,
-            num_unique.overflowing_div(_num_trees).0 as f64,
-        )
-    };
+    let out_pred: f64 =
+        unsafe { corax_msa_predict_difficulty(features, avg_rrf, prop_unique_topos) };
     // out_pred = round(out_pred * 100.0) / 100.0;
     let out_pred = (out_pred * 100.0).round() / 100.0;
     // std::cout << "The predicted difficulty for MSA " << filename << " is: " << out_pred << "\n";
@@ -256,5 +270,9 @@ pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> f64 {
         corax_utree_split_destroy(s);
     });
     // }
-    out_pred
+    PredictionResult {
+        avg_rrf,
+        prop_unique_topos,
+        difficulty: out_pred,
+    }
 }
