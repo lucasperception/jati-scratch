@@ -21,7 +21,10 @@ RUN --mount=type=bind,source=./CMakeLists.fix.txt,target=/tmp/corax-fix git clon
     && cmake .. \
     && make && make install
 WORKDIR /opt/tools
-RUN --mount=type=bind,rw,source=eval_pythia,target=eval_pythia cd eval_pythia && cargo build --release && cd .. \
+RUN --mount=type=bind,rw,source=eval_pythia,target=eval_pythia \
+    --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=eval_pythia/target \
+    cd eval_pythia && cargo build --release && cd .. \
     && cp -p ./eval_pythia/target/release/eval_pythia run-evaluation
 COPY ./eval_pythia/predictor.py .
 
