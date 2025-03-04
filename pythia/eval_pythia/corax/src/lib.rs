@@ -183,7 +183,8 @@ fn get_num_unique_and_rel_rfdist(splits: &[*mut corax_split_t], n_taxa: i32) -> 
                 unsafe { corax_utree_split_rf_distance(splits[i], splits[j], unsigned_n_taxa) }
                     .into();
             // avg_rrf += ((double)rf) / max_rf;
-            avg_rrf += rf as f64 / max_rf;
+            let rrf = rf as f64 / max_rf;
+            avg_rrf += rrf;
             // num_pairs++;
             num_pairs += 1;
             // uniq &= (rf > 0);
@@ -225,14 +226,15 @@ pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> Prediction
         unsafe {
             corax_phylip_load(
                 c_filename.as_ptr(),
-                CORAX_TRUE
-                    .try_into()
-                    .expect("CORAX_FALSE is not compatible with underlying bool int type"),
+                CORAX_TRUE.try_into().expect(
+                    "phylip interleaved flag is not compatible with underlying bool int type",
+                ),
             )
         }
     } else {
         unsafe { corax_fasta_load(c_filename.as_ptr()) }
     };
+    println!("loaded msa");
     if msa.is_null() {
         panic!("loaded msa is null");
     }
@@ -243,6 +245,7 @@ pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> Prediction
     let n_taxa: i32 = unsafe { *msa }.count;
     // std::vector<corax_split_t *> splits = get_pars_splits(msa, _num_trees);
     let splits = get_pars_splits(msa, _num_trees, dna_or_aa);
+    println!("got splits");
     // int num_unique;
     // double avg_rrf;
     // std::tie(num_unique, avg_rrf) = get_num_unique_and_rel_rfdist(splits, n_taxa);
@@ -250,6 +253,7 @@ pub fn predict_difficulty(filename: &str, dna_or_aa: SequenceType) -> Prediction
     // this safe since if the function could modify the pointers we would not free them later
     // with corax_utree_split_destroy
     let (num_unique, avg_rrf) = get_num_unique_and_rel_rfdist(&splits, n_taxa);
+    println!("got num_unique");
     // corax_msa_features * features = corax_msa_compute_features(msa, 4, corax_map_nt);
     let prop_unique_topos: f64 = num_unique as f64 / _num_trees as f64;
     let features =
