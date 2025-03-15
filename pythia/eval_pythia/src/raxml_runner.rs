@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::Instant;
 
-pub fn run(aln_path: &PathBuf) -> f64 {
+pub fn run(aln_path: &PathBuf) -> Option<f64> {
     let start = Instant::now();
     let raxml_output = Command::new("sh")
         .arg("raxml.sh")
@@ -13,9 +13,9 @@ pub fn run(aln_path: &PathBuf) -> f64 {
     if raxml_output.status.success()
         && raxml_output.stderr.is_empty()
     {
-        println!("Raxml ran succesfully in {} seconds", runtime.as_secs_f64());
-        runtime.as_secs_f64()
+        println!("Raxml ran succesfully in {runtime:?} seconds");
+        Some(runtime.as_secs_f64())
     } else {
-        -1.0
+        None
     }
 }

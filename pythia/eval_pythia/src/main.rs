@@ -44,21 +44,30 @@ fn main() {
             }
         });
     let mut evaluated_datasets = Vec::new();
+    let mut failed_datasets = Vec::new();
 
     for fasta_file_path in fasta_file_paths {
         let (n_seqs, seq_len) = read_n_seqs_and_seq_len(&fasta_file_path);
         println!("Evaluating {fasta_file_path:?} with dimensions ({n_seqs},{seq_len})");
-        let difficulty = pythia_runner::run(&fasta_file_path);
-        let raxml_runtime = raxml_runner::run(&fasta_file_path);
-        let phyml_runtime = phyml_runner::run(&fasta_file_path);
-        evaluated_datasets.push(DataSet {
-            path: fasta_file_path,
-            n_seqs,
-            seq_len,
-            difficulty,
-            raxml_runtime,
-            phyml_runtime,
-        })
+        match pythia_runner::run(&fasta_file_path) {
+            Some(difficulty) => {
+                let raxml_runtime = raxml_runner::run(&fasta_file_path).unwrap_or_else(|| {-1.0});
+                let phyml_runtime = phyml_runner::run(&fasta_file_path).unwrap_or_else(|| {-1.0});
+                evaluated_datasets.push(DataSet {
+                    path: fasta_file_path,
+                    n_seqs,
+                    seq_len,
+                    difficulty,
+                    raxml_runtime,
+                    phyml_runtime,
+                });
+            }
+            None => {
+                eprintln!("Failed to estimate difficulty for the dataset {fasta_file_path:?}");
+                failed_datasets.push(fasta_file_path);
+            }
+        };
+
     }
     println!(
         "successfully evaluated a total of {} datasets",
