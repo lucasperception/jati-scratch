@@ -1,0 +1,1 @@
+/bin/raxml-ng --search1 --msa $1 --model GTR+G --nofiles --log ERROR

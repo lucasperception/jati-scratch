@@ -1,8 +1,12 @@
 use std::{
     collections::HashSet,
     path::{Path, PathBuf},
-    process::{exit, Command},
+    process::{exit},
 };
+
+mod phyml_runner;
+mod pythia_runner;
+mod raxml_runner;
 
 #[derive(Clone, Debug)]
 struct DataSet {
@@ -10,9 +14,11 @@ struct DataSet {
     n_seqs: usize,
     seq_len: usize,
     difficulty: f64,
+    raxml_runtime: f64,
+    phyml_runtime: f64,
 }
 
-const FILE_EXTENSIONS: &[&str] = &[".fas", ".fna", ".fasta"];
+const FILE_EXTENSIONS: &[&str] = &[".fas", ".fna", ".fasta", ".aln"];
 
 fn main() {
     let args = std::env::args().collect::<Vec<_>>();
@@ -38,38 +44,31 @@ fn main() {
             }
         });
     let mut evaluated_datasets = Vec::new();
+    let mut failed_datasets = Vec::new();
 
     for fasta_file_path in fasta_file_paths {
         let (n_seqs, seq_len) = read_n_seqs_and_seq_len(&fasta_file_path);
-        let pythia_output = Command::new("python")
-            .arg("predictor.py")
-            .arg(&fasta_file_path)
-            .output()
-            .expect("python script should be runnable");
-        if pythia_output.status.success() {
-            let stdout = String::from_utf8(pythia_output.stdout)
-                .expect("stdout of predictor is not valid utf8");
-            let stdout = stdout.trim_end();
-            let difficulty: f64 = match stdout.parse() {
-                Ok(v) => v,
-                Err(error) => panic!("failed to parse stdout '{stdout}' as a float: {error:?}"),
-            };
-            println!(
-                "{fasta_file_path:?} with dimensions ({n_seqs},{seq_len}) predicted difficulty {difficulty}"
-            );
-            evaluated_datasets.push(DataSet {
-                path: fasta_file_path,
-                n_seqs,
-                seq_len,
-                difficulty,
-            })
-        } else {
-            eprintln!(
-                "{fasta_file_path:?} with dimensions ({n_seqs},{seq_len}) failed to predict difficulty"
-            );
-        }
-    }
+        println!("Evaluating {fasta_file_path:?} with dimensions ({n_seqs},{seq_len})");
+        match pythia_runner::run(&fasta_file_path) {
+            Some(difficulty) => {
+                let raxml_runtime = raxml_runner::run(&fasta_file_path).unwrap_or_else(|| {-1.0});
+                let phyml_runtime = phyml_runner::run(&fasta_file_path).unwrap_or_else(|| {-1.0});
+                evaluated_datasets.push(DataSet {
+                    path: fasta_file_path,
+                    n_seqs,
+                    seq_len,
+                    difficulty,
+                    raxml_runtime,
+                    phyml_runtime,
+                });
+            }
+            None => {
+                eprintln!("Failed to estimate difficulty for the dataset {fasta_file_path:?}");
+                failed_datasets.push(fasta_file_path);
+            }
+        };
 
+    }
     println!(
         "successfully evaluated a total of {} datasets",
         evaluated_datasets.len()
