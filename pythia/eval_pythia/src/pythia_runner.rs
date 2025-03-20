@@ -1,10 +1,10 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 
-pub fn run(path: &PathBuf) -> Option<f64> {
+pub fn run(path: &Path) -> Option<f64> {
     let pythia_output = Command::new("python")
         .arg("predictor.py")
-        .arg(&path)
+        .arg(path)
         .output()
         .expect("python script should be runnable");
     if pythia_output.status.success() {

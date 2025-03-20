@@ -1,8 +1,8 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
-pub fn run(aln_path: &PathBuf) -> Option<f64> {
+pub fn run(aln_path: &Path) -> Option<Duration> {
     let start = Instant::now();
     let raxml_output = Command::new("sh")
         .arg("raxml.sh")
@@ -10,11 +10,9 @@ pub fn run(aln_path: &PathBuf) -> Option<f64> {
         .output()
         .expect("Failed to start raxml");
     let runtime = start.elapsed();
-    if raxml_output.status.success()
-        && raxml_output.stderr.is_empty()
-    {
+    if raxml_output.status.success() && raxml_output.stderr.is_empty() {
         println!("Raxml ran succesfully in {runtime:?} seconds");
-        Some(runtime.as_secs_f64())
+        Some(runtime)
     } else {
         None
     }

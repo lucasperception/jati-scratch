@@ -1,8 +1,8 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
-pub fn run(aln_path: &Path) -> Option<f64> {
+pub fn run(aln_path: &Path) -> Option<Duration> {
     let aln_path = convert_to_phylip(aln_path.to_path_buf());
     match aln_path {
         Some(aln_path) => {
@@ -15,10 +15,8 @@ pub fn run(aln_path: &Path) -> Option<f64> {
                 .expect("Failed to start phyml");
             let runtime = start.elapsed();
             if phyml_output.status.success() {
-                println!(
-                    "Phyml ran successfully in {runtime:?} seconds",
-                );
-                Some(runtime.as_secs_f64())
+                println!("Phyml ran successfully in {runtime:?}",);
+                Some(runtime)
             } else {
                 eprintln!(
                     "Phyml failed with the following output {}",
@@ -28,7 +26,7 @@ pub fn run(aln_path: &Path) -> Option<f64> {
                 None
             }
         }
-        None => None
+        None => None,
     }
 }
 
