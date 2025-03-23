@@ -1,8 +1,13 @@
+use crate::Alphabet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, Instant};
 
-pub fn run(aln_path: &Path) -> Option<Duration> {
+pub fn run(aln_path: &Path, alphabet: &Alphabet) -> Option<Duration> {
+    let alphabet = match alphabet {
+        Alphabet::Nucleotide => "nucleotide",
+        Alphabet::Protein => "protein",
+    };
     let aln_path = convert_to_phylip(aln_path.to_path_buf());
     match aln_path {
         Some(aln_path) => {
@@ -11,6 +16,7 @@ pub fn run(aln_path: &Path) -> Option<Duration> {
             let phyml_output = Command::new("sh")
                 .arg("phyml.sh")
                 .arg(aln_path)
+                .arg(alphabet)
                 .output()
                 .expect("Failed to start phyml");
             let runtime = start.elapsed();
@@ -26,7 +32,10 @@ pub fn run(aln_path: &Path) -> Option<Duration> {
                 None
             }
         }
-        None => None,
+        None => {
+            eprintln!("Phyml failed at conversion tho phylip");
+            None
+        }
     }
 }
 

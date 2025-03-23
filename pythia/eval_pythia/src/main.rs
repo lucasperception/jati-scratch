@@ -60,8 +60,8 @@ fn main() {
         eprintln!("usage: <exe> path-to-dir-with-fasta-files-and-subdirs");
         exit(1);
     };
-    let do_predict_difficulty = false;
-    let do_run_ext_aligners = false;
+    let do_predict_difficulty = true;
+    let do_run_ext_aligners = true;
 
     if !do_predict_difficulty {
         println!("skipping difficulty prediction");
@@ -103,7 +103,7 @@ fn main() {
             .map(|data_set| {
                 if data_set.difficulty.is_some() {
                     DataSet {
-                        ext_aligners: Some(run_external_aligners(&data_set.path)),
+                        ext_aligners: Some(run_external_aligners(&data_set.path, &data_set.dimensions.alphabet)),
                         ..data_set
                     }
                 } else {
@@ -195,10 +195,10 @@ struct ExternalAlignerResults {
     raxml_runtime: Option<Duration>,
     phyml_runtime: Option<Duration>,
 }
-fn run_external_aligners(fasta_file: &Path) -> ExternalAlignerResults {
+fn run_external_aligners(fasta_file: &Path, alphabet: &Alphabet) -> ExternalAlignerResults {
     ExternalAlignerResults {
-        raxml_runtime: raxml_runner::run(fasta_file),
-        phyml_runtime: phyml_runner::run(fasta_file),
+        raxml_runtime: raxml_runner::run(fasta_file, alphabet),
+        phyml_runtime: phyml_runner::run(fasta_file, alphabet),
     }
 }
 
