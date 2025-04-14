@@ -1,0 +1,7 @@
+build-master:
+    docker build . -t muelllu9/jati
+    docker push muelllu9/jati
+
+build-hash hash:
+    docker build --build-arg COMMIT_HASH={{hash}} . -t muelllu9/jati:{{hash}}
+    docker push muelllu9/jati:{{hash}}
