@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH --job-name=jati_bench
+#SBATCH --partition=gpu_top
+#SBATCH --account=iamp
+#SBATCH --cpus-per-task=80
+#SBATCH --nodelist=fresko
+#SBATCH --ntasks=1
+#SBATCH --output=/cluster/home/muelllu9/temp/%j_%N_jati_bench.out
+#SBATCH --error=/cluster/home/muelllu9/temp/%j_%N_jati_bench.err
+
+module load sarus
+
+echo pull image:
+sarus pull muelllu9/jati:09dfef4
+echo run image:
+sarus run muelllu9/jati:09dfef4 -c "cargo bench --bench tree_from_msa --features=par-regraft"
+

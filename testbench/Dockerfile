@@ -15,4 +15,4 @@ RUN git clone "$GIT_URL" rust-phylo && \
     else \
         git checkout main; \
     fi
-
+ WORKDIR /opt/tools/rust-phylo/phylo
