@@ -6,8 +6,8 @@
 #SBATCH --nodelist=fresko
 #SBATCH --ntasks=1
 #SBATCH --export=FEATURES,COMMIT_HASH,HOME
-#SBATCH --error=$HOME/temp/jati_bench/%j/std.err
-#SBATCH --output=$HOME/temp/jati_bench/%j/std.out
+#SBATCH --error=temp/jati_bench/%j/std.err
+#SBATCH --output=temp/jati_bench/%j/std.out
 
 module load sarus
 
