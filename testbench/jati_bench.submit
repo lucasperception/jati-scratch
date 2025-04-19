@@ -2,12 +2,12 @@
 #SBATCH --job-name=jati_bench
 #SBATCH --partition=gpu_top
 #SBATCH --account=iamp
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=80
 #SBATCH --nodelist=fresko
 #SBATCH --ntasks=1
-#SBATCH --output=$HOME/temp/jati_bench/%j/std.out
+#SBATCH --export=FEATURES,COMMIT_HASH,HOME
 #SBATCH --error=$HOME/temp/jati_bench/%j/std.err
-#SBATCH --export=FEATURES,$COMMIT_HASH
+#SBATCH --output=$HOME/temp/jati_bench/%j/std.out
 
 module load sarus
 
