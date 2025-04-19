@@ -2,16 +2,29 @@
 #SBATCH --job-name=jati_bench
 #SBATCH --partition=gpu_top
 #SBATCH --account=iamp
-#SBATCH --cpus-per-task=80
+#SBATCH --cpus-per-task=1
 #SBATCH --nodelist=fresko
 #SBATCH --ntasks=1
-#SBATCH --output=/cluster/home/muelllu9/temp/%j_%N_jati_bench.out
-#SBATCH --error=/cluster/home/muelllu9/temp/%j_%N_jati_bench.err
+#SBATCH --output=$HOME/temp/jati_bench/%j/std.out
+#SBATCH --error=$HOME/temp/jati_bench/%j/std.err
+#SBATCH --export=FEATURES,$COMMIT_HASH
 
 module load sarus
 
 echo pull image:
-sarus pull muelllu9/jati:09dfef4
-echo run image:
-sarus run muelllu9/jati:09dfef4 -c "cargo bench --bench tree_from_msa --features=par-regraft"
-
+if [ -z "$COMMIT_HASH" ]; then
+    echo "pulling latest image"
+    sarus pull muelllu9/jati:latest
+else
+    echo "pulling $COMMIT_HASH"
+    sarus pull muelllu9/jati:"$COMMIT_HASH"
+fi
+echo "run image:"
+if [ -z "$FEATURES" ]; then
+    echo "running without features"
+    sarus run --mount=type=bind,source="$HOME"/jati-scratch/testbench/reference/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion muelllu9/jati:09dfef4 cargo bench --bench tree_from_msa
+else
+    echo "running with features"
+    sarus run --mount=type=bind,source="$HOME"/jati-scratch/testbench/reference/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion muelllu9/jati:09dfef4 cargo bench --bench tree_from_msa --features="$FEATURES"
+fi
+echo "done"
