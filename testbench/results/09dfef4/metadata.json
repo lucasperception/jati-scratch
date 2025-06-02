@@ -1,7 +1,0 @@
-{
-  "node": "trinity",
-  "cpus": 80,
-  "hash": "09dfef4",
-  "features": "par-regraft",
-  "timestamp": 1745162091
-}

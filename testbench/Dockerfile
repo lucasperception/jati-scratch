@@ -1,4 +1,4 @@
-FROM rust:1-bookworm
+FROM rust:1.87.0-bookworm
 
 ARG COMMIT_HASH
 

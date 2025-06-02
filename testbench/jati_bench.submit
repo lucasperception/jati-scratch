@@ -3,9 +3,10 @@
 #SBATCH --partition=gpu_top
 #SBATCH --account=iamp
 #SBATCH --cpus-per-task=80
-#SBATCH --nodelist=trinity
+#SBATCH --nodelist=sanjose
 #SBATCH --ntasks=1
-#SBATCH --export=FEATURES,COMMIT_HASH,HOME
+#SBATCH --export=FEATURES,COMMIT_HASH,HOME,IDENTIFIER
+#SBATCH --gres=gpu:0
 
 module load sarus
 
@@ -15,9 +16,9 @@ sarus pull muelllu9/jati:"$COMMIT_HASH"
 echo "run image:"
 if [ -z "$FEATURES" ]; then
     echo "running without features"
-    sarus run --mount=type=bind,source="$HOME"/temp/"$COMMIT_HASH"/target/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion muelllu9/jati:"$COMMIT_HASH" cargo bench --bench tree_from_msa
+    sarus run --mount=type=bind,source="$HOME"/temp/"$IDENTIFIER"/target/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion muelllu9/jati:"$COMMIT_HASH" cargo bench --features="deterministic "
 else
     echo "running with features: $FEATURES"
-    sarus run --mount=type=bind,source="$HOME"/temp/"$COMMIT_HASH"/target/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion muelllu9/jati:"$COMMIT_HASH" cargo bench --bench tree_from_msa --features="$FEATURES"
+    sarus run --mount=type=bind,source="$HOME"/temp/"$IDENTIFIER"/target/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion muelllu9/jati:"$COMMIT_HASH" cargo bench --features="$FEATURES deterministic"
 fi
 echo "done"

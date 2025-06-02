@@ -6,20 +6,34 @@ build-hash hash:
     docker build --build-arg COMMIT_HASH={{hash}} . -t muelllu9/jati:{{hash}}
     docker push muelllu9/jati:{{hash}}
 
-bench hash features:
+bench hash features identifier:
+    ssh austin.node "mkdir -p temp/{{identifier}}/target && mkdir -p temp/{{identifier}}/out && \
+    cp -r temp/reference/criterion temp/{{identifier}}/target && \
+    cp temp/jati_bench.submit temp/{{identifier}}/jati_bench.submit && \
+    sbatch -o temp/{{identifier}}/out/std.out --export=FEATURES="{{features}}",COMMIT_HASH="{{hash}}",IDENTIFIER="{{identifier}}",HOME temp/{{identifier}}/jati_bench.submit"
+
+bench-length hash:
     ssh austin.node "mkdir -p temp/{{hash}}/target && mkdir -p temp/{{hash}}/out && \
     cp -r temp/reference/criterion temp/{{hash}}/target && \
-    cp temp/jati_bench.submit temp/{{hash}}/jati_bench.submit && \
-    sbatch -o temp/{{hash}}/out/std.out --export=FEATURES="{{features}}",COMMIT_HASH="{{hash}}",HOME temp/{{hash}}/jati_bench.submit"
+    cp temp/jati_length.submit temp/{{hash}}/jati_length.submit && \
+    sbatch -o temp/{{hash}}/out/std.out --export=COMMIT_HASH="{{hash}}",HOME temp/{{hash}}/jati_length.submit"
 
-listen hash:
-    ssh austin.node "tail -f temp/{{hash}}/out/std.out"
+bench-taxa hash:
+    ssh austin.node "mkdir -p temp/{{hash}}/target && mkdir -p temp/{{hash}}/out && \
+    cp -r temp/reference/criterion temp/{{hash}}/target && \
+    cp temp/jati_taxa.submit temp/{{hash}}/jati_taxa.submit && \
+    sbatch -o temp/{{hash}}/out/std.out --export=COMMIT_HASH="{{hash}}",HOME temp/{{hash}}/jati_taxa.submit"
+
+listen identifier:
+    ssh austin.node "tail -f temp/{{identifier}}/out/std.out"
 
 reset-reference:
     ssh austin.node "rm -rf temp/reference && mkdir -p temp/reference"
     scp jati_bench.submit austin.node:temp/jati_bench.submit
+    scp jati_length.submit austin.node:temp/jati_length.submit
+    scp jati_taxa.submit austin.node:temp/jati_taxa.submit
     scp -r reference austin.node:temp/
 
-fetch-results hash:
-    mkdir -p results/{{hash}}
-    scp -r austin.node:temp/{{hash}}/target/criterion results/{{hash}}
+fetch-results identifier:
+    mkdir -p results/{{identifier}}
+    scp -r austin.node:temp/{{identifier}}/target/criterion results/{{identifier}}
