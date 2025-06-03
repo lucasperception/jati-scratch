@@ -3,7 +3,7 @@
 #SBATCH --partition=gpu_top
 #SBATCH --account=iamp
 #SBATCH --cpus-per-task=80
-#SBATCH --nodelist=sanjose
+#SBATCH --nodelist=fresko
 #SBATCH --ntasks=1
 #SBATCH --export=FEATURES,COMMIT_HASH,HOME,IDENTIFIER
 #SBATCH --gres=gpu:0

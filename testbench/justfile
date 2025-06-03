@@ -18,11 +18,12 @@ bench-length hash:
     cp temp/jati_length.submit temp/{{hash}}/jati_length.submit && \
     sbatch -o temp/{{hash}}/out/std.out --export=COMMIT_HASH="{{hash}}",HOME temp/{{hash}}/jati_length.submit"
 
-bench-taxa hash:
-    ssh austin.node "mkdir -p temp/{{hash}}/target && mkdir -p temp/{{hash}}/out && \
-    cp -r temp/reference/criterion temp/{{hash}}/target && \
-    cp temp/jati_taxa.submit temp/{{hash}}/jati_taxa.submit && \
-    sbatch -o temp/{{hash}}/out/std.out --export=COMMIT_HASH="{{hash}}",HOME temp/{{hash}}/jati_taxa.submit"
+bench-taxa hash identifier:
+    ssh austin.node "mkdir -p temp/{{identifier}}/target && mkdir -p temp/{{identifier}}/out && \
+    cp -r temp/reference/criterion temp/{{identifier}}/target && \
+    cp temp/jati_taxa.submit temp/{{identifier}}/jati_taxa.submit && \
+    sbatch -o temp/{{identifier}}/out/std.out --export=COMMIT_HASH="{{hash}}",IDENTIFIER="{{identifier}}",HOME temp/{{identifier}}/jati_taxa.submit"
+
 
 listen identifier:
     ssh austin.node "tail -f temp/{{identifier}}/out/std.out"
