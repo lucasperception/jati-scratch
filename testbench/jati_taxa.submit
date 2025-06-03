@@ -3,7 +3,7 @@
 #SBATCH --partition=gpu_top
 #SBATCH --account=iamp
 #SBATCH --cpus-per-task=80
-#SBATCH --nodelist=fresko
+#SBATCH --nodelist=trinity
 #SBATCH --ntasks=1
 #SBATCH --export=COMMIT_HASH,IDENTIFIER,HOME
 #SBATCH --mem=200G
@@ -17,5 +17,5 @@ echo "run image"
 sarus run \
   --mount=type=bind,source="$HOME"/temp/"$IDENTIFIER"/target/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion \
   muelllu9/jati:"$COMMIT_HASH" \
-  sh -c 'echo RUSTFLAGS="$RUSTFLAGS"; cargo test --release --package phylo --bench one_shot test_one_shot_increasing_taxa_large --features="deterministic par-regraft-manual" -- --exact --nocapture'
+  sh -c 'echo RUSTFLAGS="$RUSTFLAGS"; cargo test --release --package phylo --bench one_shot test_one_shot_increasing_taxa_xlarge --features="deterministic par-regraft-manual" -- --exact --nocapture'
 echo "done"
