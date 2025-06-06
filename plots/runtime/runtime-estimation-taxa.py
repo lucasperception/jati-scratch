@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import PchipInterpolator
 
 n_short = np.array([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
-n_full = np.array([10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200])
+n_full = np.array([10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,300,400])
 
-t_no_opt = np.array([5.011, 44.76, 258.45, 637.04, 1069.26, 1744.99, 2898.07, 4247.36, 5636.98, 11260.21])
-t_opt = np.array([1.37, 4.63, 21.2, 33.38, 52.93, 99.29, 141.72, 206.03, 234.88, 416.1, 4080.12])
+t_no_opt = np.array([5.86,24.75,154.7,861.21,1069.26,1653.43,2945.14,4147.88,5598.12,12329.23])
+t_opt = np.array([3.75,8.43,40.23,12.06,39.93,82.97,112.79,218.62,241.66,415.88,3657.89,11792.34,32068.42])
 
 no_opt = PchipInterpolator(n_short, t_no_opt)
 opt = PchipInterpolator(n_full, t_opt)
@@ -25,7 +25,7 @@ plt.plot(n_space_long, interpol_opt, '--', color='orange', alpha=0.7)
 
 plt.xlabel('Number of Taxa')
 plt.ylabel('Time (Seconds)')
-plt.title('Runtime with fixed sequence length (n = 500) and variable number of taxa')
+plt.title('Runtime with fixed sequence length (500) and variable number of taxa')
 plt.legend()
 plt.grid(True)
 

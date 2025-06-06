@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=80
 #SBATCH --nodelist=trinity
 #SBATCH --ntasks=1
-#SBATCH --export=COMMIT_HASH,HOME
+#SBATCH --export=COMMIT_HASH,IDENTIFIER,HOME
 #SBATCH --mem=200G
 
 module load sarus
@@ -14,5 +14,5 @@ echo pull image:
 sarus pull muelllu9/jati:"$COMMIT_HASH"
 
 echo "run image"
-sarus run --mount=type=bind,source="$HOME"/temp/"$COMMIT_HASH"/target/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion muelllu9/jati:"$COMMIT_HASH" cargo test --release --package phylo --bench one_shot test_one_shot_increasing_length --features="deterministic par-regraft-manual" -- --exact --nocapture
+sarus run --mount=type=bind,source="$HOME"/temp/"$IDENTIFIER"/target/criterion,destination=/opt/tools/rust-phylo/phylo/target/criterion muelllu9/jati:"$COMMIT_HASH" cargo test --release --package phylo --bench one_shot test_one_shot_increasing_length --features="deterministic par-regraft-manual" -- --exact --nocapture
 echo "done"
