@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+    <label for="benchmark-listings"
+      >criterion benchmark reports comparing runtime from our applied
+      optimizations
+    </label>
+    <ul id="benchmark-listings">
+      <li>
+        <a href="./ref-vs-final/criterion/report/index.html"
+          >Reference VS Final (w/o Memory Access Optimizations)</a
+        >
+      </li>
+      <li>
+        <a href="./ref-vs-par-regraft/criterion/report/index.html"
+          >Reference VS Parallel Regrafting</a
+        >
+      </li>
+      <li>
+        <a
+          href="./par-regraft-vs-par-regraft-manual/criterion/report/index.html"
+          >Parallel Regrafting: Iterators VS Manual Fork-Join</a
+        >
+      </li>
+      <li>
+        <a href="./par-regraft-vs-par-regraft-chunk/criterion/report/index.html"
+          >Parallel Regrafting: Iterators VS Chunked Iterators</a
+        >
+      </li>
+      <li>
+        <a href="./ref-vs-zeroalloc/criterion/report/index.html"
+          >Reference VS Inplace Operations &amp; No Allocations</a
+        >
+      </li>
+      <li>
+        <a href="./final-vs-cache-two/criterion/report/index.html"
+          >Final VS Memory Access Optimizations
+        </a>
+      </li>
+    </ul>
+    <label for="oneshot-csvs"
+      >CSV runtimes of one-shot runs using large data sets (Reference VS final
+      VS final with Memory Access Optimizations)
+    </label>
+    <ul id="oneshot-csvs">
+      <li>
+        <a target="_blank" href="./one-shot-length.csv"
+          >Varying Sequence Length</a
+        >
+      </li>
+      <li>
+        <a target="_blank" href="./one-shot-taxa.csv">Varying N Taxa</a>
+      </li>
+    </ul>
+  </body>
+</html>
